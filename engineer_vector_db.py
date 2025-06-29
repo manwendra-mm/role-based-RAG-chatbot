@@ -20,6 +20,7 @@ CHROMA_DB_DIR = "./engineer_chroma_db"         # Where vector DB will be persist
 EMBED_MODEL_NAME = "all-MiniLM-L6-v2" # Local embedding model (HF)
 CHUNK_SIZE = 500                      # Number of characters per chunk
 CHUNK_OVERLAP = 50                    # Overlap between chunks
+ENGINEER_BREAK_PROGRAM = False
 
 # ---------- Step 1: Load Markdown Files ----------
 def load_markdown_files(directory):
@@ -90,6 +91,7 @@ def query_vector_store(vectordb, k):
         print("\n\n----------------------------------------")
         question = input("Ask your question (q to quit): ")
         if question.lower() == 'q':
+            ENGINEER_BREAK_PROGRAM = True
             break
         
         # Get top relevant documents
@@ -106,10 +108,10 @@ def query_vector_store(vectordb, k):
 
         # Feed into the prompt and model chain
         result = chain.invoke({"data": context_text, "question": question}) #required part
-        return result 
+        print(result)
 
     
-
+'''
 # ---------- Main Orchestration ----------
 if __name__ == "__main__":
     # Load and process
@@ -125,4 +127,7 @@ if __name__ == "__main__":
 
     answer = query_vector_store(vectordb, k=3) # k tells the number of top results to return
     print("\nAnswer:", answer)
-# Note: Here the model is only returning the top 3 results. Give the retrieved data to the LLM for further processing to get better answers.  Continue editing from here.............
+    
+# Note: Here the model is only returning the top 3 results. Give the retrieved data to the LLM for further processing to get better answers.
+
+'''

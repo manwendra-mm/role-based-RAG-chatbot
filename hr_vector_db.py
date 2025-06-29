@@ -9,6 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 import os
 import pandas as pd
 
+HR_BREAK_PROGRAM = False
 
 #Loading Data
 df = pd.read_csv("DS-RPC-01/data/hr/hr_data.csv")
@@ -83,13 +84,16 @@ vector_store = Chroma(
 if add_documents:
     vector_store.add_documents(documents=documents, ids=ids)
 
-hr_retriever = vector_store.as_retriever(
-    search_kwargs={"k": 5}  # Number of documents to retrieve
-)
 
 ########################################
 # Filling the prompt template with data and question, then pass it to the LLM for an answer.
 def hr_generate_response():
+
+    hr_retriever = vector_store.as_retriever(
+        search_kwargs={"k": 5}  # Number of documents to retrieve
+    )
+
+    
     model = OllamaLLM(model="llama3.2")
 
     template = """
@@ -120,12 +124,13 @@ def hr_generate_response():
         print("\n\n----------------------------------------")
         question = input("Ask your question (q to quit): ")
         if question.lower() == 'q':
+            BREAK_PROGRAM = True
             break
 
         # Get top relevant documents
         documents = hr_retriever.invoke(question)
 
-        # Combine their page_content into a string
+        # Combine the documents into the context_text string
         # (The format of this string can be changed... Experiment with it to find a good one!)
         context_text = "\n\n".join(
             f"- {doc.page_content} (EmployeeID: {doc.metadata['employee_id']},Full Name , Manager ID:{doc.metadata['manager_id']}, Salary: {doc.metadata['salary']}, DOJ: {doc.metadata['date_of_joining']})"
@@ -138,11 +143,11 @@ def hr_generate_response():
         result = chain.invoke({"data": context_text, "question": question}) #required part
         print("\nAnswer:", result) 
 
-
-# MAIN 
+'''
+# MAIN, only for testing purposes
 if __name__ == "__main__":
     hr_generate_response()
-
+'''
 
 
 

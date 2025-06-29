@@ -1,19 +1,19 @@
 #Main file which will call the retrieval and response generation functions based on the role.
-print("Welcome to FinSolve's AI Assistant...")
-role = input("Enter your role(hr/eng): ")
+from hr_vector_db import BREAK_PROGRAM
+print("Welcome to FinSolve's AI Assistant...\nSelect your role to proceed \na-HR\nb-Engineer): ")
 
-if role=='hr':
-    from hr_vector_db import hr_generate_response
-    hr_generate_response()
+role = input("Enter your role(a or b): ")
 
-elif(role == 'engineer'):
-    from engineer_vector_db import engineer_generate_response
+while BREAK_PROGRAM == False:
+    if role.lower()=='a':
+        from hr_vector_db import hr_generate_response
+        hr_generate_response()
 
-    if(role == 'engineer'):
+    elif(role.lower() == 'b'):
+        from engineer_vector_db import engineer_generate_response
         engineer_generate_response()
 
-elif(role == 'sales'):
-    #Will me writing later
-    pass
-    
-    # More roles can be added here
+    else:
+        print("Invalid role selected. Please choose either 'a' for HR or 'b' for Engineer.")
+        
+        # More roles can be added here 
