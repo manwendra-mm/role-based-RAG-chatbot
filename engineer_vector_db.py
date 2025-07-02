@@ -14,22 +14,22 @@ from langchain_core.prompts import ChatPromptTemplate
 
 
 
-# ---------- Configuration ----------
+#  Configuration 
 MARKDOWN_DIR = "./DS-RPC-01/data/engineering"     # Path to directory containing .md files
 CHROMA_DB_DIR = "./engineer_chroma_db"         # Where vector DB will be persisted
 EMBED_MODEL_NAME = "all-MiniLM-L6-v2" # Local embedding model (HF)
 CHUNK_SIZE = 500                      # Number of characters per chunk
 CHUNK_OVERLAP = 50                    # Overlap between chunks
-ENGINEER_BREAK_PROGRAM = False
+ENGINEER_BREAK_PROGRAM = False 
 
-# ---------- Step 1: Load Markdown Files ----------
+#Step 1: Load Markdown Files 
 def load_markdown_files(directory):
     loader = DirectoryLoader(path=directory, glob="**/*.md", loader_cls=TextLoader)
     documents = loader.load()
     print(f"Loaded {len(documents)} markdown documents.")
     return documents
 
-# ---------- Step 2: Split into Chunks ----------
+# Step 2: Split into Chunks 
 def split_documents(documents):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
@@ -39,11 +39,11 @@ def split_documents(documents):
     print(f"Split into {len(chunks)} chunks.")
     return chunks
 
-# ---------- Step 3: Create Embeddings Locally ----------
+# Step 3: Create Embeddings Locally 
 def create_embeddings(model_name):
     return HuggingFaceEmbeddings(model_name=model_name)
 
-# ---------- Step 4: Store Embeddings in Chroma DB ----------
+# Step 4: Store Embeddings in Chroma DB 
 def store_documents_in_chroma(chunks, embeddings, db_path):
     if os.path.exists(db_path):
         print("Chroma DB already exists. Loading it...")
@@ -54,13 +54,26 @@ def store_documents_in_chroma(chunks, embeddings, db_path):
         vectordb.persist()
     return vectordb
 
-# ---------- Step 5: Query the Vector Store ----------
+# Step 5: Query the Vector Store 
+# This function will be called by the main code, most of necessary work will be done here.
 def query_vector_store(vectordb, k):
+
+    # This if works if 
+    if not os.path.exists(CHROMA_DB_DIR): 
+        # Load and process
+        raw_docs = load_markdown_files(MARKDOWN_DIR)
+        chunked_docs = split_documents(raw_docs)
+
+        # Embed
+        embeddings = create_embeddings(EMBED_MODEL_NAME)
+
+        # Store
+        vectordb = store_documents_in_chroma(chunked_docs, embeddings, CHROMA_DB_DIR)
+
     #Creating object- retriever
     retriever = vectordb.as_retriever(
         search_kwargs={"k": k}
-    )    
-    
+    )
     
     model = OllamaLLM(model="llama3.2")
 
@@ -76,26 +89,18 @@ def query_vector_store(vectordb, k):
     prompt = ChatPromptTemplate.from_template(template)
     chain = prompt | model
 
-    '''
-    while True:
-        print("\n\n----------------------------------------")
-        question = input("Ask your question (q to quit): ")
-        if question.lower() == 'q':
-            break
-        reviews = retriever.invoke(question)
-        result = chain.invoke({"data": reviews, "question": question})
-        print(result)
-    '''
 
     while True:
-        print("\n\n----------------------------------------")
+        print("\n\n")
         question = input("Ask your question (q to quit): ")
         if question.lower() == 'q':
-            ENGINEER_BREAK_PROGRAM = True
+            BREAK_PROGRAM_ENGINEER = True
             break
         
         # Get top relevant documents
         documents = retriever.invoke(question)
+        #Debug line
+        print("Debug Print (Documents): ", documents)  
 
         # Combine their page_content into a string, for passing to the template.
         context_text = "\n\n".join(
@@ -104,7 +109,7 @@ def query_vector_store(vectordb, k):
         )
 
         #Debug print to see the context_text
-        print("Debug print: ", context_text)
+        #print("Debug print: ", context_text)
 
         # Feed into the prompt and model chain
         result = chain.invoke({"data": context_text, "question": question}) #required part
@@ -112,7 +117,7 @@ def query_vector_store(vectordb, k):
 
     
 '''
-# ---------- Main Orchestration ----------
+# Main Orchestration 
 if __name__ == "__main__":
     # Load and process
     raw_docs = load_markdown_files(MARKDOWN_DIR)

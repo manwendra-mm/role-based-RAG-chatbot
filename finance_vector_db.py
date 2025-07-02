@@ -20,7 +20,7 @@ CHROMA_DB_DIR = "./finance_chroma_db"         # Where vector DB will be persiste
 EMBED_MODEL_NAME = "all-MiniLM-L6-v2" # Local embedding model (HF)
 CHUNK_SIZE = 1000                      # Number of characters per chunk
 CHUNK_OVERLAP = 100             # Overlap between chunks
-ENGINEER_BREAK_PROGRAM = False
+FINANCE_BREAK_PROGRAM = False
 
 # ---------- Step 1: Load Markdown Files ----------
 def load_markdown_files(directory):
@@ -59,7 +59,7 @@ def query_vector_store(vectordb, k):
     #Creating object- retriever
     retriever = vectordb.as_retriever(
         search_kwargs={"k": k}
-    )    
+    )
     
     
     model = OllamaLLM(model="llama3.2")
