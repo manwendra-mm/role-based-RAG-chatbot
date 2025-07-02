@@ -9,7 +9,7 @@ role = input("Enter your role(a or b): ")
 while HR_BREAK_PROGRAM or ENGINEER_BREAK_PROGRAM or FINANCE_BREAK_PROGRAM != True:
     if role.lower()=='a':
         from hr_vector_db import hr_generate_response
-        hr_generate_response()
+        hr_generate_response("asdkabjsdkjba")
 
     elif(role.lower() == 'b'):
         from engineer_vector_db import engineer_generate_response

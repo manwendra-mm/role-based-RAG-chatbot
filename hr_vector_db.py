@@ -64,7 +64,6 @@ def create_vector_store():
             ids.append(str(i))
             documents.append(document)
 
-    global vector_store #This object will be used in the hr_generate_response function, so its global
     vector_store = Chroma(
         collection_name = "hr_data",
         persist_directory=db_location,
@@ -78,17 +77,27 @@ def create_vector_store():
 
 ########################################
 # Filling the prompt template with data and question, then pass it to the LLM for an answer.
-def hr_generate_response():
+def hr_generate_response(question):
     
     # If db directory does not exist, create the vector store
     if not os.path.exists(CHROMA_DB_DIR):
         create_vector_store()
+    
+    db_location = CHROMA_DB_DIR
+    add_documents = not os.path.exists(db_location)
+    embeddings = OllamaEmbeddings(model="mxbai-embed-large")
 
-    hr_retriever = vector_store.as_retriever(
-        search_kwargs={"k": 5}  # Number of documents to retrieve
+    vector_store = Chroma(
+        collection_name = "hr_data",
+        persist_directory=db_location,
+        embedding_function=embeddings
     )
 
-    
+    hr_retriever = vector_store.as_retriever(
+        search_kwargs={"k": 50}  # Number of documents to retrieve
+    )
+
+
     model = OllamaLLM(model="llama3.2")
 
     template = """
@@ -99,6 +108,7 @@ def hr_generate_response():
     Here are the HR data records:{data}
 
     Here is the question: {question}
+
     """
 
     prompt = ChatPromptTemplate.from_template(template)
@@ -107,7 +117,7 @@ def hr_generate_response():
 
     while True:
         print("\n\n----------------------------------------")
-        question = input("Ask your question (q to quit): ")
+        # question = input("Ask your question (q to quit): ")
         if question.lower() == 'q':
             HR_BREAK_PROGRAM = True
             break
@@ -126,13 +136,23 @@ def hr_generate_response():
 
         # Feed into the prompt and model chain
         result = chain.invoke({"data": context_text, "question": question}) #required part
-        print("\nAnswer:", result) 
+        print("\nAnswer:", result)
+        return result  # Return the result for further processing if needed
+
 
 '''
 # MAIN, only for testing purposes
 if __name__ == "__main__":
-    hr_generate_response()
+    # Create the vector store if it doesn't exist
+    if not os.path.exists(CHROMA_DB_DIR):
+        create_vector_store()
+
+    # Start the HR response generation loop
+    while not HR_BREAK_PROGRAM:
+        question = "List few employees located at Hyderabad"
+        if question.lower() == 'q':
+            HR_BREAK_PROGRAM = True
+            break
+        hr_generate_response(question)
+
 '''
-
-
-

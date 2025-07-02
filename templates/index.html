@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FinSolve AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>FinSolve's AI Assistant</h1>
+    <select id="role">
+        <option value="a">HR</option>
+        <option value="b">Engineer</option>
+    </select>
+    <input type="text" id="question" placeholder="Ask your question...">
+    <button onclick="ask()">Ask</button>
+    <div id="answer"></div>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
